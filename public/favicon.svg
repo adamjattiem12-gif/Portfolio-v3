@@ -1,4 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="AJ">
-  <rect width="64" height="64" rx="13" fill="#090d24"/>
-  <path fill="#e4fb4e" fill-rule="evenodd" d="M8 49 17.4 16.8c.7-2.4 2.4-3.8 4.8-3.8h.2c2.4 0 4.1 1.4 4.8 3.8L36.5 49h-8.2l-2-7.5H17L15 49H8Zm11-14h5.5l-2.8-10.5L19 35Zm17-21h19v7h-5.8v16.5c0 8.1-4.5 12.5-12.1 12.5-5.6 0-9.5-2.3-11.3-6.8l6.4-4.1c1 2.5 2.5 3.7 4.8 3.7 3.1 0 4.6-1.8 4.6-5.3V21H36v-7Z"/>
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 64 64"
+     role="img"
+     aria-label="AJ">
+  <rect width="64" height="64" rx="12" fill="#090d24"/>
+
+  <!-- A -->
+  <path
+    fill="#e4fb4e"
+    fill-rule="evenodd"
+    d="M7.5 49 16.1 16.3 Q16.6 14.5 18.7 14.5 H21 Q23 14.5 23.5 16.3 L32 49 H24.8 L23.1 41.5 H16.4 L14.6 49 Z M18 35 H21.5 L19.8 26 Z"
+  />
+
+  <!-- J -->
+  <path
+    fill="#e4fb4e"
+    d="M36 14.5 H57 V21.5 H52 V38 Q52 50 43 50 Q35 50 33.5 44 L39.8 39.8 Q40.5 43.5 43.7 43.5 Q46 43.5 46 38 V21.5 H36 Z"
+  />
 </svg>
