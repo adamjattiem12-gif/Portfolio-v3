@@ -6,14 +6,24 @@ const router = createRouter({
   routes: [
     { path: '/', name: 'home', component: HomeView },
     // Keep existing URLs useful while presenting every section on one page.
-    ...['skills', 'projects', 'about', 'contact', 'education'].map((section) => ({
+    ...['skills', 'projects', 'about', 'contact', 'education', 'certifications'].map((section) => ({
       path: `/${section}`,
       redirect: { path: '/', hash: `#${section === 'education' ? 'certifications' : section}` },
     })),
   ],
-  scrollBehavior(to, from, savedPosition) {
+  async scrollBehavior(to, from, savedPosition) {
     if (savedPosition) return savedPosition
-    if (to.hash) return { el: to.hash }
+    if (to.hash) {
+      await document.fonts.ready
+      const section = document.getElementById(to.hash.slice(1))
+      if (section) {
+        const headerHeight = document.querySelector('.site-header')?.offsetHeight || 86
+        return {
+          top: section.getBoundingClientRect().top + window.scrollY - headerHeight,
+          behavior: document.querySelector('.motion-off') ? 'instant' : 'smooth',
+        }
+      }
+    }
     return { top: 0 }
   },
 })

@@ -1,69 +1,94 @@
+<script setup>
+import { onUnmounted, reactive, ref } from 'vue'
+const fields = reactive({ name: '', surname: '', email: '', message: '' })
+const form = ref(null)
+const busy = ref(false)
+const status = ref('')
+const statusKind = ref('')
+let controller
+let timeout
+async function submit() {
+  if (busy.value || !form.value.reportValidity()) return
+  busy.value = true
+  status.value = 'Sending securely through Formspree...'
+  statusKind.value = 'sending'
+  controller = new AbortController()
+  timeout = setTimeout(() => controller.abort(), 20000)
+  try {
+    const response = await fetch('https://formspree.io/f/mgoqgngy', {
+      method: 'POST', body: new FormData(form.value),
+      headers: { Accept: 'application/json' }, signal: controller.signal,
+    })
+    if (!response.ok) {
+      let message = 'The message could not be sent. Please try again.'
+      const body = await response.json().catch(() => null)
+      if (Array.isArray(body?.errors)) message = body.errors.map(e => e.message).filter(Boolean).join(' ') || message
+      throw new Error(message)
+    }
+    statusKind.value = 'success'
+    status.value = 'Message sent successfully. Thank you for reaching out!'
+    Object.keys(fields).forEach(key => { fields[key] = '' })
+  } catch (error) {
+    statusKind.value = 'error'
+    status.value = error.name === 'AbortError'
+      ? 'The request timed out. Your message is kept; please retry.'
+      : `${error.message || 'Unable to send right now.'} Your message is kept so you can retry.`
+  } finally {
+    clearTimeout(timeout)
+    busy.value = false
+  }
+}
+onUnmounted(() => { clearTimeout(timeout); controller?.abort() })
+</script>
+
 <template>
-  <section id="contact" class="section contact-section">
-    <div class="container">
+  <section id="contact" class="contact-section section-pad" aria-labelledby="contact-heading">
+    <div class="wrap contact-layout">
       <div class="contact-copy">
-      <span class="kicker">Let's connect</span>
-      <h2>Get in touch</h2>
-      <p>I'm always interested in learning, collaborating and exploring opportunities to build meaningful software. Drop me a message below.</p>
+        <p class="eyebrow">05 / The next connection</p>
+        <h2 id="contact-heading">GOT<br>SOMETHING<br>
+          <em>GOOD?</em>
+        </h2>
+        <p> A role, a project, a good technical question.<br>I’m listening. <br>
+          <a href="mailto:adamjattiem12@gmail.com" class="contact-email">adamjattiem12@gmail.com ↗</a>
+        </p>
+        <img src="/design/contact-telescope.svg" width="600" height="450" loading="lazy" alt="Original ink illustration of a radio telescope receiving a signal">
       </div>
-      <div class="form-panel">
-        <form class="contact-form" action="https://formspree.io/f/mgoqgngy" method="POST">
-          <div class="name-row">
-            <div class="form-group">
-              <label for="name">Name <span aria-hidden="true">*</span></label>
-              <input id="name" name="name" type="text" required autocomplete="given-name">
+      <div class="contact-form-wrap">
+        <div class="form-top">
+          <span>DIRECT LINE / ADAM</span>
+          <span aria-hidden="true">↗</span>
+        </div>
+        <h3>Start with hello.</h3>
+        <form action="https://formspree.io/f/mgoqgngy" method="POST" @submit.prevent="submit" ref="form">
+          <div class="form-row">
+            <div class="field">
+              <label for="name">Name <span>*</span>
+              </label>
+              <input id="name" name="name" type="text" autocomplete="given-name" required="" placeholder="Your first name" v-model="fields.name">
             </div>
-            <div class="form-group">
-              <label for="surname">Surname <span aria-hidden="true">*</span></label>
-              <input id="surname" name="surname" type="text" required autocomplete="family-name">
+            <div class="field">
+              <label for="surname">Surname <span>*</span>
+              </label>
+              <input id="surname" name="surname" type="text" autocomplete="family-name" required="" placeholder="Your surname" v-model="fields.surname">
             </div>
           </div>
-          <div class="form-group">
-            <label for="email">Email <span aria-hidden="true">*</span></label>
-            <input id="email" name="email" type="email" required autocomplete="email">
+          <div class="field">
+            <label for="email">Email <span>*</span>
+            </label>
+            <input id="email" name="email" type="email" autocomplete="email" required="" placeholder="you@example.com" v-model="fields.email">
           </div>
-          <div class="form-group">
-            <label for="message">Message</label>
-            <textarea id="message" name="message" rows="5"></textarea>
+          <div class="field">
+            <label for="message">What’s on your mind?</label>
+            <textarea id="message" name="message" rows="5" placeholder="A few details are a good place to start." v-model="fields.message" required="" maxlength="10000">
+            </textarea>
           </div>
-          <button type="submit" class="submit-btn">Submit</button>
+          <button type="submit" class="button yellow" :disabled="busy">{{ busy ? 'Sending message…' : 'Send a message' }} <span aria-hidden="true">↗</span>
+          </button>
+          <p class="required-note">* Required fields</p>
+          <p class="enh-form-status" role="status" aria-live="polite" :data-kind="statusKind">{{ status }}</p>
         </form>
       </div>
     </div>
   </section>
 </template>
-
-<style scoped>
-.contact-section { background: linear-gradient(180deg, #17243a 0%, #142137 55%, #101827 100%); padding: 82px 0; }
-.contact-section .container { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); gap: 72px; align-items: start; }
-.contact-section .kicker { font-size: 12px; letter-spacing: .12em; margin-bottom: 18.2px; }
-.contact-section h2 { font-size: clamp(35px, 3.8vw, 49px); line-height: 1.17; margin-bottom: 26.2px; }
-.contact-section p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.75; }
-.form-panel { width: 100%; border: 1px solid #3b5876; border-radius: 16px; padding: 24px; background: var(--panel); box-shadow: 0 18px 38px rgba(4,11,22,.15); transition: border-color .24s, box-shadow .24s; }
-.form-panel.reveal { transition: opacity 640ms var(--motion-ease), translate 640ms var(--motion-ease), border-color .24s, box-shadow .24s; }
-.form-panel:focus-within { border-color: var(--accent); box-shadow: 0 18px 40px rgba(4,11,22,.2), 0 0 0 2px rgba(86,148,232,.15); }
-.contact-form { width: 100%; margin: 0; }
-.name-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
-.form-group { min-width: 0; margin: 0 0 17px; }
-.form-group label { display: block; margin: 0 0 8px; color: #f1f5fd; font-size: 14px; font-weight: 700; line-height: 1.4; }
-.form-group label span { color: #22d3ee; }
-.form-group input, .form-group textarea { display: block; width: 100%; max-width: 100%; background: var(--background); color: var(--text); border: 1px solid #45617f; border-radius: 7px; font-size: 14px; line-height: 1.5; padding: 12px 14px; box-shadow: none; transition: border-color .2s, box-shadow .2s, background .2s; }
-.form-group textarea { min-height: 140px; resize: vertical; }
-.form-group input { height: 40px; }
-.form-group input:focus, .form-group textarea:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(86,148,232,.18); }
-.submit-btn { background: var(--button); color: #fff; border: 0; border-radius: 9px; font-size: 14px; font-weight: 800; line-height: 1; min-height: 46px; padding: 0 25px; transition: transform .22s var(--motion-ease), background .22s, box-shadow .22s; }
-.submit-btn:hover { background: #4786db; transform: translateY(-2px); box-shadow: 0 10px 22px rgba(6,13,28,.27); }
-@media (min-width: 741px) and (max-width: 1050px) {
-  .contact-section .container { gap: 35px; }
-  .contact-section h2 { margin-bottom: 34.4px; }
-}
-@media (max-width: 740px) {
-  .contact-section { padding: 62px 0; background: linear-gradient(180deg, #17243a, #101827); }
-  .contact-section .container { grid-template-columns: minmax(0, 1fr); gap: 27px; }
-  .contact-section .kicker { margin-bottom: 13px; }
-  .contact-section h2 { margin-bottom: 8px; }
-  .contact-section p { font-size: 15px; }
-  .name-row { grid-template-columns: minmax(0, 1fr); }
-}
-@media (prefers-reduced-motion: reduce) { .submit-btn:hover { transform: none; } }
-</style>

@@ -1,161 +1,111 @@
-<script setup>
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+﻿<script setup>
+import { computed, ref, inject } from 'vue'
 import { projects } from '@/data/projects'
-
-const expanded = reactive({})
-const teamExpanded = reactive({})
-const currentIndex = ref(0)
-const isMobile = ref(false)
-const viewport = ref(null)
-const viewportWidth = ref(0)
-const visibleCount = computed(() => isMobile.value ? 1 : 2)
-const maxIndex = computed(() => projects.length - visibleCount.value)
-const offset = computed(() => currentIndex.value * (viewportWidth.value + (isMobile.value ? 14 : 22)) / visibleCount.value)
-const counter = computed(() => {
-  const first = currentIndex.value + 1
-  return `${first}${isMobile.value ? '' : `–${first + 1}`} of ${projects.length}`
-})
-let mediaQuery
-let resizeObserver
-
-function updateLayout() {
-  isMobile.value = mediaQuery.matches
-  currentIndex.value = Math.min(currentIndex.value, maxIndex.value)
-  viewportWidth.value = viewport.value.clientWidth
+import TechnicalCaseStudies from '@/components/TechnicalCaseStudies.vue'
+const selected = ref(0)
+const notesOpen = ref(false)
+const project = computed(() => projects[selected.value])
+const shortNames = ['FoodBoxx', 'Market Pulse', 'ModernTech', 'TutorLink', 'First portfolio']
+const coverTitles = ['THE FULL STACK', 'MAKING DATA MAKE SENSE', 'PEOPLE & PROCESSES', 'BETTER TOGETHER', 'THE FIRST CHAPTER']
+const { motionOff } = inject('motion')
+const stage = ref(null)
+let touchOrigin = null
+function selectProject(index) {
+  const next = (index + projects.length) % projects.length
+  if (next === selected.value) return
+  selected.value = next
+  notesOpen.value = false
+  // Animate within a stable grid: no scrollIntoView or animated layout dimensions.
+  if (!motionOff.value) {
+    stage.value?.querySelector('.project-copy')?.animate(
+      [{ opacity: .2, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }],
+      { duration: 380, easing: 'cubic-bezier(.2,.8,.2,1)' },
+    )
+    stage.value?.querySelector('.screenshot-frame')?.animate(
+      [{ opacity: .3, transform: 'translateY(8px) rotate(-1deg)' }, { opacity: 1, transform: 'translateY(0) rotate(-1deg)' }],
+      { duration: 450, easing: 'ease-out' },
+    )
+  }
 }
-
-function move(direction) {
-  currentIndex.value = Math.min(maxIndex.value, Math.max(0, currentIndex.value + direction))
+function onKey(event) {
+  if (event.altKey || event.ctrlKey || event.metaKey || event.target.closest('input,textarea,select')) return
+  if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+    event.preventDefault()
+    selectProject(selected.value + (event.key === 'ArrowRight' ? 1 : -1))
+  }
 }
-
-onMounted(() => {
-  mediaQuery = window.matchMedia('(max-width: 740px)')
-  mediaQuery.addEventListener('change', updateLayout)
-  resizeObserver = new ResizeObserver(updateLayout)
-  resizeObserver.observe(viewport.value)
-  updateLayout()
-})
-
-onUnmounted(() => {
-  mediaQuery?.removeEventListener('change', updateLayout)
-  resizeObserver?.disconnect()
-})
+function touchStart(event) {
+  const touch = event.changedTouches[0]
+  touchOrigin = { x: touch.clientX, y: touch.clientY }
+}
+function touchEnd(event) {
+  if (!touchOrigin) return
+  const touch = event.changedTouches[0]
+  const dx = touch.clientX - touchOrigin.x
+  const dy = touch.clientY - touchOrigin.y
+  touchOrigin = null
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.3) selectProject(selected.value + (dx < 0 ? 1 : -1))
+}
 </script>
 
 <template>
-  <section id="projects" class="section">
-    <div class="container">
-      <div class="projects-header">
+  <section id="projects" class="work-section section-pad" aria-labelledby="work-heading" @keydown="onKey">
+    <div class="wrap">
+      <div class="work-heading">
         <div>
-          <span class="kicker">Selected work</span>
-          <h2>Projects I've worked on.</h2>
+          <p class="eyebrow"><span class="spark">✦</span> 01 / Selected projects</p>
+          <h2 id="work-heading">LESS THEORY.<br><em>MORE PROOF.</em></h2>
         </div>
-        <div class="carousel-controls" role="group" aria-label="Project carousel controls">
-          <button type="button" class="carousel-arrow" aria-label="Previous projects" :disabled="currentIndex === 0" @click="move(-1)">&larr;</button>
-          <span class="carousel-count" aria-live="polite">{{ counter }}</span>
-          <button type="button" class="carousel-arrow" aria-label="Next projects" :disabled="currentIndex === maxIndex" @click="move(1)">&rarr;</button>
+        <p>Team-built applications.<br>Real problems. Plenty of debugging.<br>Here’s what I contributed.</p>
+      </div>
+      <div class="project-index" aria-label="Choose a project">
+        <button v-for="(item, index) in projects" :key="item.id" type="button"
+          :aria-pressed="selected === index" aria-controls="project-stage" @click="selectProject(index)">
+          <span class="index-node"><span>{{ String(index + 1).padStart(2, '0') }}</span></span>
+          <span>{{ shortNames[index] }}</span><span aria-hidden="true" class="index-arrow">↗</span>
+        </button>
+      </div>
+      <article id="project-stage" ref="stage" class="project-stage" :class="'project-' + project.id" aria-labelledby="project-title">
+        <div class="project-cover" @touchstart.passive="touchStart" @touchend.passive="touchEnd" @touchcancel="touchOrigin = null">
+          <div class="cover-top"><span class="eyebrow">BUILD / {{ String(selected + 1).padStart(2, '0') }}</span><span class="cover-star" aria-hidden="true">✶</span></div>
+          <p class="cover-title" aria-hidden="true">{{ coverTitles[selected] }}</p>
+          <div class="screenshot-frame">
+            <span class="frame-caption">{{ shortNames[selected] }} / Application view</span>
+            <img :src="project.image" :alt="project.alt" :width="project.imageWidth" :height="project.imageHeight" loading="lazy">
+          </div>
+          <div class="cover-bottom"><span>YOUTHCODE / LIFE CHOICES ACADEMY</span><span aria-hidden="true">+ + +</span></div>
+        </div>
+        <div class="project-copy">
+          <p class="eyebrow">{{ project.type }}</p>
+          <h3 id="project-title">{{ project.title }}</h3>
+          <p class="project-intro">{{ project.intro }}</p>
+          <ul class="tech-list" aria-label="Project technologies"><li v-for="tech in project.tech" :key="tech">{{ tech }}</li></ul>
+          <div class="project-links">
+            <a v-for="link in project.links" :key="link.url" :href="link.url" target="_blank" rel="noopener noreferrer"
+              :class="link.label === 'Live Demo' ? 'button yellow' : 'text-link'">
+              {{ link.label }} <span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span>
+            </a>
+          </div>
+          <button class="notes-toggle" type="button" :aria-expanded="notesOpen" aria-controls="build-notes" @click="notesOpen = !notesOpen">
+            <span>Read the build notes</span><span aria-hidden="true">{{ notesOpen ? '−' : '+' }}</span>
+          </button>
+        </div>
+        <div v-show="notesOpen" id="build-notes" class="build-notes">
+          <div><p class="eyebrow">Behind the build</p><h4>The details matter.</h4></div>
+          <div>
+            <p v-for="paragraph in project.description" :key="paragraph">{{ paragraph }}</p>
+            <p v-if="project.team" class="team-credit"><strong>Team</strong><br>{{ project.team }}</p>
+          </div>
+        </div>
+      </article>
+      <div class="project-pagination">
+        <span role="status" aria-live="polite">{{ shortNames[selected] }} · {{ selected + 1 }} of {{ projects.length }}</span>
+        <div>
+          <button type="button" aria-label="Previous project" @click="selectProject(selected - 1)">←</button>
+          <button type="button" aria-label="Next project" @click="selectProject(selected + 1)">→</button>
         </div>
       </div>
-      <div ref="viewport" class="carousel-viewport" role="region" aria-label="Projects carousel" aria-roledescription="carousel" tabindex="0" @keydown.left.self.prevent="move(-1)" @keydown.right.self.prevent="move(1)" @keydown.home.self.prevent="currentIndex = 0" @keydown.end.self.prevent="currentIndex = maxIndex">
-        <div class="projects-list" :style="{ transform: `translateX(-${offset}px)` }">
-          <article v-for="(project, index) in projects" :key="project.id" class="project-card"
-            :inert="index < currentIndex || index >= currentIndex + visibleCount"
-            :aria-hidden="index < currentIndex || index >= currentIndex + visibleCount"
-            :aria-label="`${project.title}, ${index + 1} of ${projects.length}`" aria-roledescription="slide">
-            <img :src="project.image" :alt="project.alt" :width="project.imageWidth" :height="project.imageHeight" class="project-image" loading="lazy" decoding="async">
-            <span class="project-type">{{ project.type }}</span>
-            <h3 class="project-title">{{ project.title }}</h3>
-            <p class="project-intro">{{ project.intro }}</p>
-            <div class="project-details">
-              <button type="button" class="read-more-btn" :aria-expanded="!!expanded[project.id]" :aria-controls="`${project.id}-description`" @click="expanded[project.id] = !expanded[project.id]">
-                {{ expanded[project.id] ? 'Show Less ↑' : 'Read More ↓' }}
-              </button>
-              <div v-show="expanded[project.id]" :id="`${project.id}-description`" class="project-description">
-                <p v-for="paragraph in project.description" :key="paragraph">{{ paragraph }}</p>
-              </div>
-            </div>
-            <div class="project-tech" aria-label="Technologies">
-              <span v-for="tech in project.tech" :key="tech">{{ tech }}</span>
-            </div>
-            <div v-if="project.team" class="project-team" :class="{ 'team-expanded': teamExpanded[project.id] }">
-              <div class="team-heading">
-                <strong>Team</strong>
-                <button type="button" class="team-toggle" :aria-expanded="!!teamExpanded[project.id]" :aria-controls="`${project.id}-team`"
-                  :aria-label="teamExpanded[project.id] ? 'Show less about the project team' : 'Read more about the project team'"
-                  @click="teamExpanded[project.id] = !teamExpanded[project.id]">
-                  {{ teamExpanded[project.id] ? 'Show Less ↑' : 'Read More ↓' }}
-                </button>
-              </div>
-              <div :id="`${project.id}-team`" class="team-members"><em>{{ project.team }}</em></div>
-            </div>
-            <div class="project-links">
-              <a v-for="link in project.links" :key="link.url" :href="link.url" class="project-link" target="_blank" rel="noopener noreferrer">
-                {{ link.label }} <span aria-hidden="true">&rarr;</span>
-              </a>
-            </div>
-          </article>
-        </div>
-      </div>
+      <TechnicalCaseStudies />
     </div>
   </section>
 </template>
-
-<style scoped>
-.projects-header { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 27px; }
-.projects-header h2 { margin-bottom: 0; }
-.carousel-controls { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-.carousel-count { min-width: 66px; text-align: center; font-size: 12px; color: #9ba8bc; font-weight: 700; }
-.carousel-arrow { appearance: none; background: var(--panel); border: 1px solid #496787; color: var(--text); border-radius: 8px; width: 62px; height: 44px; display: inline-flex; justify-content: center; align-items: center; font-size: 23px; font-weight: 500; line-height: 1; padding: 0; transition: transform .22s var(--motion-ease), background .22s, box-shadow .22s; }
-.carousel-arrow:hover:not(:disabled), .carousel-arrow:focus-visible { background: var(--button); }
-.carousel-arrow:hover:not(:disabled) { transform: translateY(-2px); }
-.carousel-arrow:disabled { opacity: .35; cursor: not-allowed; }
-.carousel-viewport { width: 100%; overflow: hidden; padding-top: 5px; padding-bottom: 18px; margin-bottom: -18px; }
-.projects-list { display: flex; gap: 22px; align-items: stretch; margin-top: 24px; transition: transform 500ms var(--motion-ease); }
-.project-card { flex: 0 0 calc((100% - 22px) / 2); min-width: 0; border: 1px solid #385573; border-radius: 12px; padding: 15px 18px; background: var(--panel); display: flex; flex-direction: column; transition: transform .3s var(--motion-ease), border-color .25s, box-shadow .3s; }
-.project-card:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(86,148,232,.19); }
-.project-image { display: block; width: 100%; height: clamp(115px, 15vw, 185px); object-fit: contain; object-position: center; margin: 0 0 13px; border-radius: 8px; }
-.project-type { font-size: 9px; color: #88b9f4; font-weight: 800; letter-spacing: .08em; }
-.project-title { font-size: clamp(17px, 1.6vw, 22px); line-height: 1.2; font-weight: 600; letter-spacing: -.035em; margin: 7px 0 9px; color: #f7faff; }
-.project-card .project-intro { font-size: 12px; line-height: 1.48; margin: 0 0 7px; color: #c2d0e0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.read-more-btn { display: inline-flex; align-items: center; color: #94c5ff; font-size: 12px; font-weight: 800; background: none; border: 0; padding: 0; margin: 1px 0 8px; line-height: inherit; }
-.project-description p { font-size: 12px; line-height: 1.55; margin: 0 0 10px; color: #c2d0e0; }
-.project-tech { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 7px 0 9px; }
-.project-tech span { color: #88b9f4; font-size: 10px; font-weight: 750; }
-.project-tech span:not(:last-child)::after { content: '\2022'; padding-left: 6px; color: #5287da; }
-.project-team { margin: 0 0 10px; color: #aab9d1; font-size: 11px; line-height: 1.45; }
-.team-heading { display: inline; }
-.team-heading strong { color: #e9f1ff; }
-.team-heading strong::after { content: ':'; }
-.team-members { display: inline; }
-.team-members em { font-synthesis: style; }
-.team-heading strong::after { white-space: pre; content: ': '; }
-.team-toggle { display: none; }
-.project-links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; }
-.project-link { display: inline-flex; align-items: center; gap: 12px; border-radius: 6px; border: 1px solid #5084cb; background: #2c5d9d; color: #fff; font-weight: 800; font-size: 11px; padding: 8px 12px; transition: background .22s, transform .22s var(--motion-ease), box-shadow .22s; }
-.project-link:hover { background: var(--button); transform: translateY(-2px); box-shadow: 0 10px 22px rgba(6,13,28,.27); }
-.project-link span { transition: transform .22s var(--motion-ease); }
-.project-link:hover span { transform: translateX(3px); }
-@media (hover: hover) and (pointer: fine) { .project-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 19px 35px rgba(3,10,24,.27); } }
-@media (max-width: 921px) { .carousel-arrow { width: 58px; } }
-@media (max-width: 740px) {
-  .projects-list { gap: 14px; }
-  .project-card { flex-basis: 100%; }
-  .project-team { margin-bottom: 12px; }
-  .team-heading { display: flex; align-items: center; gap: 12px; }
-  .team-toggle { display: inline-flex; align-items: center; border: 0; background: none; padding: 3px 0; font: inherit; font-weight: 800; font-size: 11px; color: #54a2ff; }
-  .team-members { display: none; line-height: 1.6; padding-top: 7px; }
-  .team-expanded .team-members { display: block; }
-}
-@media (max-width: 640px) {
-  .projects-header { align-items: center; gap: 10px; flex-wrap: wrap; }
-  .carousel-controls { margin-left: auto; }
-  .carousel-arrow { width: 58px; height: 37px; }
-  .project-card { padding: 10px; }
-  .project-image { height: 100px; }
-  .project-title { font-size: 14px; overflow-wrap: anywhere; }
-  .project-tech span { font-size: 9px; }
-  .project-link { padding: 7px 9px; font-size: 10px; }
-}
-@media (max-width: 544px) { .carousel-arrow { width: 50px; } }
-@media (prefers-reduced-motion: reduce) { .project-card:hover, .project-link:hover, .carousel-arrow:hover:not(:disabled) { transform: none; } }
-</style>

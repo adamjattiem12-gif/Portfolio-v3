@@ -1,9 +1,9 @@
-// Project content and order from the WordPress portfolio.
+// Original project content and screenshots from Portfolio 03.
 export const projects = [
   {
     "id": "foodboxx",
     "title": "FoodBoxx — Module 3 Core Project",
-    "image": "/wordpress/foodboxx.png",
+    "image": "/design/project-foodboxx.png",
     "imageWidth": 1024,
     "imageHeight": 356,
     "alt": "FoodBoxx meal ordering website homepage with navy background and orange calls to action",
@@ -39,16 +39,16 @@ export const projects = [
   {
     "id": "market-pulse",
     "title": "Market Scraper Dashboard — Agile Sprint Project",
-    "image": "/wordpress/market-pulse.png",
+    "image": "/design/project-market-pulse.png",
     "imageWidth": 1024,
     "imageHeight": 487,
     "alt": "Market Pulse dashboard showing market scraping sources and retail and digital asset statistics",
     "type": "TEAM PROJECT • AGILE SPRINT",
-    "intro": "A full-stack market data scraping dashboard developed during a four-week Agile sprint. I built the Flask backend scraping layer and data pipelines for a Vue.js frontend.",
+    "intro": "A full-stack market data scraping dashboard developed during a four-week Agile sprint. I contributed Python scraping and data extraction for a Vue.js dashboard, alongside teammates responsible for API, storage and frontend work.",
     "description": [
-      "A full-stack web scraping dashboard built over a 4-week Agile sprint. I engineered the backend scraping layer with Flask — designing the data pipelines that pull real-time market data from multiple sources (WebScraper.io and CoinPaprika) and feed it into a Vue.js frontend.",
-      "My work covered request routing, HTML parsing, and transforming raw scraped pages into clean, structured datasets the frontend could consume.",
-      "The biggest technical win was getting the scrapers to run reliably without timing out — rate limiting, error handling, and delivery timing were what kept the whole product stable. Real-world data is messy, and I learned that the 20% of work spent on edge cases delivered 80% of our reliability."
+      "A full-stack web scraping dashboard built over a four-week Agile sprint. I contributed the Python scraping and extraction layer, requesting and parsing external market data into structured records for the team application.",
+      "My work focused on data extraction, HTML parsing and data cleaning. Teammates contributed the Flask API integration, SQLite storage and Vue dashboard; the case study below explains those separate layers.",
+      "The biggest technical win was getting the scrapers to run reliably without timing out — rate limiting, error handling, and delivery timing were what kept the whole product stable. Real-world data is messy, and this taught me to pay attention to edge cases and failure handling."
     ],
     "tech": [
       "Python",
@@ -74,7 +74,7 @@ export const projects = [
   {
     "id": "moderntech",
     "title": "ModernTech HR Portal",
-    "image": "/wordpress/moderntech.png",
+    "image": "/design/project-moderntech.png",
     "imageWidth": 1024,
     "imageHeight": 456,
     "alt": "ModernTech HR Portal dashboard showing employee, payroll, leave and attendance statistics",
@@ -108,7 +108,7 @@ export const projects = [
   {
     "id": "tutorlink",
     "title": "TutorLink — Startup Launch Challenge",
-    "image": "/wordpress/tutorlink.png",
+    "image": "/design/project-tutorlink.png",
     "imageWidth": 1024,
     "imageHeight": 404,
     "alt": "TutorLink startup website homepage with green hero and team photograph",
@@ -141,7 +141,7 @@ export const projects = [
   {
     "id": "portfolio",
     "title": "Personal Portfolio Website — HTML & CSS",
-    "image": "/wordpress/portfolio.png",
+    "image": "/design/project-portfolio.png",
     "imageWidth": 1024,
     "imageHeight": 491,
     "alt": "Screenshot of the HTML and CSS personal portfolio homepage",

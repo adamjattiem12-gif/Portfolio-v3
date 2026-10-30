@@ -1,0 +1,62 @@
+﻿const { chromium } = await import('playwright').catch(() => import('../.migration/browser-tools/node_modules/playwright/index.mjs'));
+import fs from 'node:fs/promises';
+import crypto from 'node:crypto';
+const baseURL = process.env.PORTFOLIO_URL || 'http://127.0.0.1:4173';
+await fs.mkdir('.migration', { recursive: true });
+const browser = process.env.BROWSER_CDP_URL
+  ? await chromium.connectOverCDP(process.env.BROWSER_CDP_URL)
+  : await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || undefined });
+const context = await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce',hasTouch:true});
+const page = await context.newPage();
+const results=[];const errors=[];page.on('pageerror',e=>errors.push(e.message));
+function check(value,label,detail=''){if(!value)throw Error(label+' '+detail);results.push(label);}
+await page.goto(baseURL + '/');
+await page.evaluate(()=>document.fonts.ready);
+check(await page.locator('.motion-off').count()===1,'System reduced motion respected');
+await page.locator('.map-toggle').click();check(await page.locator('.art-routes').evaluate(e=>e.classList.contains('shown')),'Hero map reveals');
+await page.locator('.map-toggle').click();check(await page.locator('.map-toggle').getAttribute('aria-pressed')==='false','Hero map hides');
+check(await page.locator('.hero-contact').getAttribute('target')==='_blank','CV opens in new tab');
+const response=await context.request.get(baseURL + '/Adam%20Jattiem%20CV.pdf');
+const pdf=await response.body();const source=await fs.readFile('public/Adam Jattiem CV.pdf');
+check(response.ok()&&pdf.equals(source)&&pdf.subarray(0,5).toString()==='%PDF-','PDF URL serves exact supplied document');
+await page.locator('.project-index button').nth(4).click();
+check((await page.locator('#project-title').textContent()).includes('Personal Portfolio'),'Direct project index selection');
+await page.locator('button[aria-label="Next project"]').click();check((await page.locator('.project-pagination [role="status"]').textContent()).includes('1 of 5'),'Next project wraps and updates counter');
+await page.locator('button[aria-label="Previous project"]').focus();await page.keyboard.press('ArrowRight');
+check((await page.locator('.project-pagination [role="status"]').textContent()).includes('2 of 5'),'Project ArrowRight keyboard control');
+await page.keyboard.press('ArrowLeft');check((await page.locator('#project-title').textContent()).includes('FoodBoxx'),'Project ArrowLeft keyboard control');
+await page.locator('.notes-toggle').click();check(await page.locator('#build-notes').isVisible(),'Project build notes expand');
+await page.locator('.project-index button').nth(1).click();check(!await page.locator('#build-notes').isVisible(),'Project notes reset on selection');
+const caseItem=page.locator('.enh-case-item').first();await caseItem.locator('summary').click();check(await caseItem.getAttribute('open')!==null,'Case study expands');
+await caseItem.locator('.enh-architecture-legend button').nth(2).click();check((await caseItem.locator('.enh-layer-info').textContent()).includes('MySQL'),'Case study layer selection updates engineering text');
+const node=caseItem.locator('svg [role="button"]').nth(1);await node.focus();await page.keyboard.press('Enter');check(await node.getAttribute('aria-pressed')==='true','SVG architecture supports keyboard selection');
+await caseItem.locator('summary').click();
+for(let i=0;i<3;i++){await page.locator('.skill-select button').nth(i).click();check(await page.locator('.skill-layer').nth(i).evaluate(e=>e.classList.contains('selected')),`Skills category ${i+1} synchronizes graphical layer`);}
+await page.locator('[aria-controls="formal-content"]').click();check(!await page.locator('#formal-content').isVisible(),'Education collapses');
+await page.locator('[aria-controls="formal-content"]').click();check(await page.locator('#formal-content').isVisible(),'Education expands');
+await page.locator('[aria-controls="cisco-content"]').click();check(await page.locator('#cisco-content').isVisible(),'Cisco certifications expand');
+await page.locator('#contact').scrollIntoViewIfNeeded();
+let requests=0;let mode='error';
+await page.route('https://formspree.io/f/mgoqgngy',async route=>{requests++;await new Promise(r=>setTimeout(r,150));if(mode==='error')await route.fulfill({status:422,contentType:'application/json',body:JSON.stringify({errors:[{message:'Test rejection'}]})});else if(mode==='network')await route.abort('failed');else await route.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'});});
+await page.locator('button[type="submit"]').click();check(requests===0,'Invalid contact form blocks submission');
+await page.locator('#name').fill('Browser');await page.locator('#surname').fill('Test');await page.locator('#email').fill('test@example.com');await page.locator('#message').fill('Intercepted browser test; never sent.');
+await page.locator('button[type="submit"]').click();check(await page.locator('button[type="submit"]').isDisabled(),'Contact shows loading state');
+await page.waitForFunction(()=>document.querySelector('.enh-form-status').dataset.kind==='error');check(await page.locator('#message').inputValue()==='Intercepted browser test; never sent.','Failed server response preserves message');
+mode='network';await page.locator('button[type="submit"]').click();await page.waitForFunction(()=>document.querySelector('.enh-form-status').dataset.kind==='error'&&!document.querySelector('button[type="submit"]').disabled);check(await page.locator('#email').inputValue()==='test@example.com','Network failure preserves fields');
+mode='success';await page.locator('button[type="submit"]').click();await page.waitForFunction(()=>document.querySelector('.enh-form-status').dataset.kind==='success');check(await page.locator('#message').inputValue()==='','Intercepted successful response clears form');
+await page.evaluate(()=>scrollTo(0,0));await page.waitForTimeout(80);check(await page.locator('#aj-scroll-progress-track').getAttribute('aria-valuenow')==='0','Scroll progress starts at zero');
+await page.evaluate(()=>scrollTo(0,(document.documentElement.scrollHeight-innerHeight)/2));await page.waitForTimeout(80);const mid=+(await page.locator('#aj-scroll-progress-track').getAttribute('aria-valuenow'));check(mid>=49&&mid<=51,'Scroll progress reaches midpoint');
+await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));await page.waitForTimeout(80);check(await page.locator('#aj-scroll-progress-track').getAttribute('aria-valuenow')==='100','Scroll progress reaches 100 percent');
+await page.evaluate(()=>scrollTo(0,100));await page.waitForTimeout(80);check(+(await page.locator('#aj-scroll-progress-track').getAttribute('aria-valuenow'))<mid,'Scroll progress decreases upward');
+for(const path of ['projects','skills','about','education','certifications','contact']){await page.goto(baseURL + '/'+path);await page.waitForTimeout(100);const hash=path==='education'?'certifications':path;check(new URL(page.url()).hash==='#'+hash,`Legacy /${path} redirects to section`);check(await page.locator('#'+hash).evaluate(e=>Math.abs(e.getBoundingClientRect().top-86)<10),`/${path} clears sticky navbar`);}
+await page.setViewportSize({width:390,height:844});await page.goto(baseURL + '/');
+await page.locator('#menu-toggle').click();check(await page.locator('#main-nav').isVisible(),'Mobile navigation opens');
+await page.keyboard.press('Escape');check(await page.locator('#menu-toggle').getAttribute('aria-expanded')==='false','Escape closes mobile navigation');check(await page.locator('#menu-toggle').evaluate(e=>e===document.activeElement),'Mobile navigation restores focus');
+await page.locator('#menu-toggle').click();await page.locator('#main-nav a[href="#skills"]').click();check(await page.locator('#menu-toggle').getAttribute('aria-expanded')==='false','Mobile navigation link closes menu');
+await page.locator('.project-index button').first().click();const cover=page.locator('.project-cover');await cover.scrollIntoViewIfNeeded();const rect=await cover.boundingBox();const session=await context.newCDPSession(page);const y=rect.y+Math.min(rect.height/2,250);await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:rect.x+rect.width*.8,y}]});await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:rect.x+rect.width*.2,y}]});await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(100);check((await page.locator('.project-pagination [role="status"]').textContent()).includes('2 of 5'),'Touch swipe advances project');
+await context.close();
+const normal=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'no-preference'});const q=await normal.newPage();await q.goto(baseURL + '/');await q.locator('.motion-toggle').click();check(await q.locator('.motion-off').count()===1,'Manual Motion Off applies');check(await q.locator('.hero-art img').evaluate(e=>getComputedStyle(e).animationName)==='none','Manual Motion Off stops astronaut');await q.reload();check(await q.locator('.motion-off').count()===1,'Motion preference persists');await q.locator('.motion-toggle').click();check(await q.locator('.motion-off').count()===0,'Manual motion re-enables');await q.locator('#contact').scrollIntoViewIfNeeded();await q.waitForFunction(() => document.querySelector('#top').classList.contains('animation-paused')); check(await q.locator('#top').evaluate(e=>e.classList.contains('animation-paused')),'Offscreen hero pauses animations');await normal.close();
+check(errors.length===0,'No browser runtime errors',errors.join('\n'));
+console.log(JSON.stringify({passed:results.length,results,pdfSha256:crypto.createHash('sha256').update(pdf).digest('hex'),errors},null,2));
+await fs.writeFile('.migration/interaction-results.json',JSON.stringify({passed:results.length,results,errors},null,2));
+await browser.close();
