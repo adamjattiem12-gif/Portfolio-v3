@@ -28,7 +28,6 @@ const proofs = [
       <div class="skill-machine">
         <div class="machine-caption">
           <span>APPLICATION ANATOMY</span>
-          <span aria-hidden="true">✳</span>
           <span>THREE CONNECTED LAYERS</span>
         </div>
         <div class="skill-layers">

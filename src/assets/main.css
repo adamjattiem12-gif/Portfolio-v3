@@ -1070,11 +1070,8 @@ section[id] {
   align-items: center;
   gap: 10px;
   margin-bottom: 32px;
-  font-size: 8px;
+  font-size: clamp(7px, .7vw, 9px);
   display: flex;
-}
-.machine-caption>span:nth-child(2) {
-  font-size: 28px;
 }
 .skill-layers {
   flex-direction: column;
@@ -1512,9 +1509,9 @@ section[id] {
 .footer-bottom {
   justify-content: space-between;
   align-items: center;
-  gap: 30px;
+  gap: 24px;
   padding-top: 25px;
-  font-size: 10px;
+  font-size: 14px;
   display: flex;
 }
 .footer-caption {
@@ -1522,18 +1519,22 @@ section[id] {
   text-transform: none;
   letter-spacing: .02em;
   margin-top: 6px;
-  font-size: 8px;
+  font-size: 13px;
   display: block;
 }
 .footer-bottom nav {
-  gap: 25px;
+  gap: 24px;
   display: flex;
 }
 .footer-bottom a {
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   min-height: 44px;
+  font-size: 16px;
   display: inline-flex;
+}
+.footer-bottom a span[aria-hidden="true"] {
+  font-size: 16px;
 }
 .footer-bottom a:hover {
   color: var(--yellow);
@@ -1939,7 +1940,7 @@ section[id] {
   }
   .footer-bottom {
     gap: 20px;
-    font-size: 9px;
+    font-size: 14px;
   }
   .footer-bottom nav {
     gap: 18px;
@@ -2410,10 +2411,7 @@ section[id] {
   .machine-caption {
     letter-spacing: 0;
     margin-bottom: 25px;
-    font-size: 7px;
-  }
-  .machine-caption>span:nth-child(2) {
-    font-size: 22px;
+    font-size: 8px;
   }
   .skill-layers {
     gap: 15px;
@@ -2639,24 +2637,23 @@ section[id] {
     font-size: .65em;
   }
   .footer-bottom {
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
+    grid-template-columns: 1fr;
+    gap: 8px;
     padding-top: 22px;
-    font-size: 9px;
     display: grid;
   }
   .footer-bottom>span {
-    grid-column: 1/-1;
-  }
-  .footer-bottom>a {
-    justify-content: flex-end;
-    font-size: 8px;
+    font-size: 14px;
   }
   .footer-bottom nav {
-    gap: 18px;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .footer-bottom>a:last-child {
+    justify-content: flex-start;
   }
   .footer-caption {
-    font-size: 8px;
+    font-size: 13px;
   }
 }
 @media (width<=360px) {
