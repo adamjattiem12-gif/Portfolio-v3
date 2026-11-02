@@ -1,5 +1,5 @@
 ﻿<script setup>
-import { computed, ref, inject } from 'vue'
+import { computed, ref, inject, onUnmounted, watch } from 'vue'
 import { projects } from '@/data/projects'
 import TechnicalCaseStudies from '@/components/TechnicalCaseStudies.vue'
 const selected = ref(0)
@@ -10,21 +10,30 @@ const coverTitles = ['THE FULL STACK', 'MAKING DATA MAKE SENSE', 'PEOPLE & PROCE
 const { motionOff } = inject('motion')
 const stage = ref(null)
 let touchOrigin = null
+let projectAnimations = []
+function stopProjectAnimations() {
+  projectAnimations.forEach(animation => animation.cancel())
+  projectAnimations = []
+}
+watch(motionOff, off => { if (off) stopProjectAnimations() })
+onUnmounted(stopProjectAnimations)
 function selectProject(index) {
   const next = (index + projects.length) % projects.length
   if (next === selected.value) return
   selected.value = next
   notesOpen.value = false
+  stopProjectAnimations()
   // Animate within a stable grid: no scrollIntoView or animated layout dimensions.
   if (!motionOff.value) {
-    stage.value?.querySelector('.project-copy')?.animate(
+    const copy = stage.value?.querySelector('.project-copy')?.animate(
       [{ opacity: .2, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }],
       { duration: 380, easing: 'cubic-bezier(.2,.8,.2,1)' },
     )
-    stage.value?.querySelector('.screenshot-frame')?.animate(
-      [{ opacity: .3, transform: 'translateY(8px) rotate(-1deg)' }, { opacity: 1, transform: 'translateY(0) rotate(-1deg)' }],
+    const screenshot = stage.value?.querySelector('.screenshot-frame')?.animate(
+      [{ opacity: .3 }, { opacity: 1 }],
       { duration: 450, easing: 'ease-out' },
     )
+    projectAnimations = [copy, screenshot].filter(Boolean)
   }
 }
 function onKey(event) {

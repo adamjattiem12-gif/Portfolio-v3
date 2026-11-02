@@ -12,15 +12,16 @@ const router = createRouter({
     })),
   ],
   async scrollBehavior(to, from, savedPosition) {
-    if (savedPosition) return savedPosition
+    if (savedPosition) return { ...savedPosition, behavior: 'instant' }
     if (to.hash) {
-      await document.fonts.ready
+      // Wait for layout only on the initial load, not on every section click.
+      if (!from.matched.length) await document.fonts.ready
       const section = document.getElementById(to.hash.slice(1))
       if (section) {
         const headerHeight = document.querySelector('.site-header')?.offsetHeight || 86
         return {
           top: section.getBoundingClientRect().top + window.scrollY - headerHeight,
-          behavior: document.querySelector('.motion-off') ? 'instant' : 'smooth',
+          behavior: !from.matched.length || document.documentElement.classList.contains('motion-disabled') || window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
         }
       }
     }

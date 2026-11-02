@@ -12,9 +12,7 @@ function toggleMotion() {
   try { localStorage.setItem('portfolio-motion-off', String(manualOff.value)) } catch { /* Storage is optional. */ }
 }
 provide('motion', { motionOff, toggleMotion })
-watch(motionOff, (off) => {
-  if (off) document.getAnimations().forEach(animation => animation.cancel())
-})
+watch(motionOff, (off) => document.documentElement.classList.toggle('motion-disabled', off), { immediate: true })
 const progress = ref(0)
 const router = useRouter()
 let frame = 0
@@ -38,25 +36,29 @@ onMounted(async () => {
   media.addEventListener('change', preferenceChanged)
   window.addEventListener('scroll', scheduleProgress, { passive: true })
   window.addEventListener('resize', scheduleProgress, { passive: true })
-  resizeObserver = new ResizeObserver(scheduleProgress)
-  resizeObserver.observe(document.documentElement)
-  visibilityObserver = new IntersectionObserver(entries => {
-    entries.forEach(entry => entry.target.classList.toggle('animation-paused', !entry.isIntersecting))
-  })
-  document.querySelectorAll('main > section').forEach(el => visibilityObserver.observe(el))
-  revealObserver = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('enh-visible')
-        revealObserver.unobserve(entry.target)
-      }
+  if ('ResizeObserver' in window) {
+    resizeObserver = new ResizeObserver(scheduleProgress)
+    resizeObserver.observe(document.documentElement)
+  }
+  if ('IntersectionObserver' in window) {
+    visibilityObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => entry.target.classList.toggle('animation-paused', !entry.isIntersecting))
     })
-  }, { threshold: .03, rootMargin: '0px 0px 25px 0px' })
-  document.querySelectorAll('.work-heading,.skill-intro,.story-heading,.credentials-heading,.contact-copy').forEach(el => {
-    el.classList.add('enh-reveal')
-    revealObserver.observe(el)
-  })
-  document.documentElement.classList.add('enh-reveal-ready')
+    document.querySelectorAll('main > section').forEach(el => visibilityObserver.observe(el))
+    revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('enh-visible')
+          revealObserver.unobserve(entry.target)
+        }
+      })
+    }, { threshold: .03, rootMargin: '0px 0px 25px 0px' })
+    document.querySelectorAll('.work-heading,.skill-intro,.story-heading,.credentials-heading,.contact-copy').forEach(el => {
+      el.classList.add('enh-reveal')
+      revealObserver.observe(el)
+    })
+    document.documentElement.classList.add('enh-reveal-ready')
+  }
   scheduleProgress()
 })
 onUnmounted(() => {
@@ -66,6 +68,7 @@ onUnmounted(() => {
   resizeObserver?.disconnect(); visibilityObserver?.disconnect(); revealObserver?.disconnect()
   cancelAnimationFrame(frame)
   document.documentElement.classList.remove('enh-reveal-ready')
+  document.documentElement.classList.remove('motion-disabled')
 })
 </script>
 

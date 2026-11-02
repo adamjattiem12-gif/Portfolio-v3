@@ -11,7 +11,7 @@
           <span class="sr-only"> (opens in a new tab)</span>
         </a>
       </nav>
-      <a href="#top">Back to the beginning ↑</a>
+      <RouterLink to="#top">Back to the beginning ↑</RouterLink>
     </div>
   </footer>
 </template>

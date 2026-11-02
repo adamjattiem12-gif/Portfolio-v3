@@ -99,12 +99,12 @@ onUnmounted(resetArtwork)
     <div class="hero-art">
       <img src="/design/hero-astronaut.svg" width="1000" height="900" alt="Illustration of Adam Jattiem as an astronaut, with his actual face, beneath a ringed planet.">
       <div class="art-routes" :class="{ shown: mapShown }">
-        <a href="#projects" class="route-work">01 <span>The work ↗</span>
-        </a>
-        <a href="#about" class="route-story">02 <span>The human ↗</span>
-        </a>
-        <a href="#contact" class="route-contact">05 <span>Say hello ↗</span>
-        </a>
+        <RouterLink to="#projects" class="route-work">01 <span>The work ↗</span>
+        </RouterLink>
+        <RouterLink to="#about" class="route-story">02 <span>The human ↗</span>
+        </RouterLink>
+        <RouterLink to="#contact" class="route-contact">05 <span>Say hello ↗</span>
+        </RouterLink>
       </div>
     </div>
     <div class="hero-copy">
@@ -118,8 +118,8 @@ onUnmounted(resetArtwork)
         <p>Backend-minded. Full-stack capable. Still asking questions.</p>
       </div>
       <div class="hero-actions">
-        <a href="#projects" class="button yellow">See what I’ve built <span aria-hidden="true">↗</span>
-        </a>
+        <RouterLink to="#projects" class="button yellow">See what I’ve built <span aria-hidden="true">↗</span>
+        </RouterLink>
         <a href="/Adam%20Jattiem%20CV.pdf" target="_blank" rel="noopener noreferrer" class="hero-contact">View my CV <span aria-hidden="true">↗</span>
         </a>
       </div>
@@ -132,8 +132,8 @@ onUnmounted(resetArtwork)
         <button type="button" class="map-toggle" :aria-pressed="mapShown" @click="mapShown = !mapShown">{{ mapShown ? 'Hide the map −' : 'Reveal the map +' }}</button>
         <button type="button" class="motion-toggle" :aria-pressed="motionOff" @click="toggleMotion">Motion {{ motionOff ? 'off' : 'on' }}</button>
       </div>
-      <a href="#projects" aria-label="Scroll to selected projects">SCROLL TO EXPLORE <span aria-hidden="true">↓</span>
-      </a>
+      <RouterLink to="#projects" aria-label="Scroll to selected projects">SCROLL TO EXPLORE <span aria-hidden="true">↓</span>
+      </RouterLink>
     </div>
   </section>
 </template>

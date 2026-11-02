@@ -48,7 +48,7 @@ const proofs = [
           <p class="skill-example">{{ current.example }}</p>
           <p class="enh-skill-proof">
             <span>{{ proofs[selected].label }}</span>
-            <a v-for="link in proofs[selected].links" :key="link.text" :href="link.href">{{ link.text }}</a>
+            <RouterLink v-for="link in proofs[selected].links" :key="link.text" :to="link.href">{{ link.text }}</RouterLink>
           </p>
         </div>
       </div>
