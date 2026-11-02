@@ -357,15 +357,6 @@ section[id] {
   top: -1%;
   right: -5%;
 }
-.hero-art:before {
-  content: "";
-  opacity: .25;
-  z-index: 1;
-  pointer-events: none;
-  background: linear-gradient(90deg,#090d24 0,#0000 25%);
-  position: absolute;
-  inset: 0;
-}
 .hero-art img {
   width: 100%;
   height: auto;
@@ -2083,7 +2074,7 @@ section[id] {
     margin-top: -7%;
     margin-left: -3%;
   }
-  .hero-art:before,.hero-side-note {
+  .hero-side-note {
     display: none;
   }
   .hero-bottom {
