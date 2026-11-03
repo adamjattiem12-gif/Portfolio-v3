@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 const formalOpen = ref(true)
 const ciscoOpen = ref(false)
+const agileOpen = ref(false)
 </script>
 
 <template>
@@ -138,6 +139,27 @@ const ciscoOpen = ref(false)
             </p>
             <h4>Linux Unhatched</h4>
             <p>Ongoing training, as recorded in my CV.</p>
+          </article>
+        </div>
+      </div>
+      <div class="credential-group">
+        <h3>
+          <button type="button" aria-controls="agile-content" :aria-expanded="agileOpen" @click="agileOpen = !agileOpen">
+            <span class="group-number">C</span>
+            <span>Agile &amp; Delivery<small>Foundational Scrum and collaborative software delivery.</small>
+            </span>
+            <span class="group-plus" aria-hidden="true">{{ agileOpen ? '−' : '+' }}</span>
+          </button>
+        </h3>
+        <div id="agile-content" class="certificate-grid certificate-grid--single" v-show="agileOpen">
+          <article class="certificate">
+            <p class="eyebrow">SCRUMstudy <span class="completed">&mdash; Completed</span></p>
+            <h4>Scrum Fundamentals Certified (SFC&trade;)</h4>
+            <p>Certified in Scrum fundamentals, including Scrum principles, roles, events, and iterative, collaborative delivery.</p>
+            <p class="cert-date">Awarded: 3 November 2026</p>
+            <a href="https://c46e136a583f7e334124-ac22991740ab4ff17e21daf2ed577041.ssl.cf1.rackcdn.com/Certificate/ScrumFundamentalsCertified-AdamJattiem-1205061-20261103.pdf" target="_blank" rel="noopener noreferrer" aria-label="View Scrum Fundamentals Certified certificate (opens in a new tab)">
+              View Certificate <span aria-hidden="true">↗</span>
+            </a>
           </article>
         </div>
       </div>

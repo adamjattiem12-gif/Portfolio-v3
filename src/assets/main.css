@@ -1325,6 +1325,11 @@ section[id] {
   padding-bottom: 20px;
   display: grid;
 }
+.certificate-grid--single {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 760px;
+  margin-inline: auto;
+}
 .certificate {
   border: 2px solid var(--ink);
   background: var(--ink);
