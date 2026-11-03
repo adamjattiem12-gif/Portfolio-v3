@@ -39,7 +39,14 @@ const proofs = [
                 <li v-for="tag in skill.tags" :key="tag">{{ tag }}</li>
               </ul>
             </div>
-            <span class="layer-symbol" aria-hidden="true">{{ ['{ }', '&lt;/&gt;', '↗'][index] }}</span>
+            <span class="layer-symbol" aria-hidden="true">
+              <template v-if="index === 2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true" focusable="false">
+                  <path d="M6 18 18 6M8 6h10v10" />
+                </svg>
+              </template>
+              <template v-else>{{ ['{ }', '</>'][index] }}</template>
+            </span>
           </div>
         </div>
         <div id="skill-explanation" class="skill-explanation" aria-live="polite">

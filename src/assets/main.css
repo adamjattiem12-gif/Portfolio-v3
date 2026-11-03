@@ -1134,11 +1134,18 @@ section[id] {
 }
 .layer-symbol {
   font-family: var(--display);
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   margin-left: auto;
   font-size: 43px;
   font-weight: 800;
   line-height: 1;
+  display: inline-flex;
+}
+.layer-symbol svg {
+  width: 1em;
+  height: 1em;
 }
 .skill-explanation {
   max-width: 530px;
